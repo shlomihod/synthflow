@@ -1,0 +1,96 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+exclude: 'privbayes'
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.2.0
+    hooks:
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
+    -   id: check-yaml
+    -   id: check-toml
+    -   id: check-json
+    -   id: pretty-format-json
+        args: ['--autofix']
+    -   id: check-added-large-files
+        args: ['--maxkb=1024']
+        exclude: .gz$
+    -   id: check-ast
+-   repo: https://github.com/pre-commit/pygrep-hooks
+    rev: v1.9.0  # Use the ref you want to point at
+    hooks:
+    -   id: python-use-type-annotations
+    -   id: python-check-blanket-noqa
+    -   id: rst-directive-colons
+
+-   repo: local
+    hooks:
+    -   id: black
+        name: black
+        stages: [commit]
+        language: system
+        entry: poetry run black
+        types: [python]
+
+    -   id: isort
+        name: isort
+        stages: [commit]
+        language: system
+        entry: poetry run isort
+        types: [python]
+
+    -   id: flake8
+        name: flake8
+        stages: [commit]
+        language: system
+        entry: poetry run flake8
+        types: [python]
+
+    -   id: pyupgrade
+        name: pyupgrade
+        stages: [commit]
+        language: system
+        entry: poetry run pyupgrade
+        types: [python]
+
+    -   id: mypy
+        name: mypy
+        stages: [commit]
+        language: system
+        entry: poetry run mypy
+        types: [python]
+
+    -   id: nbqa-black
+        name: nbqa-black
+        stages: [commit]
+        language: system
+        entry: poetry run nbqa black
+        types: [jupyter]
+
+    -   id: nbqa-isort
+        name: nbqa-isort
+        stages: [commit]
+        language: system
+        entry: poetry run nbqa isort
+        types: [jupyter]
+
+    -   id: nbqa-flake8
+        name: nbqa-flake8
+        stages: [commit]
+        language: system
+        entry: poetry run nbqa flake8
+        types: [jupyter]
+
+    -   id: nbqa-pyupgrade
+        name: nbqa-pyupgrade
+        stages: [commit]
+        language: system
+        entry: poetry run nbqa pyupgrade
+        types: [jupyter]
+
+    -   id: nbqa-mypy
+        name: nbqa-mypy
+        stages: [commit]
+        language: system
+        entry: poetry run nbqa mypy
+        types: [jupyter]

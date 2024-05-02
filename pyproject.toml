@@ -1,0 +1,107 @@
+[tool.poetry]
+name = "synthflow"
+version = "0.1.0"
+description = "Generating and Evaluating Differentially Private Synthetic Data."
+authors = ["shlomihod <shlomi@bu.edu>"]
+license = "MIT"
+readme = "README.rst"
+repository = "https://github.com/shlomihod/synthflow"
+include = ["test/data/*",
+           "synthflow/reporting/*.ipynb",
+           "privbayes/**/*"]
+exclude = ["privbayes/*.bin, privbayes/*.exe"]
+
+[tool.poetry.scripts]
+synthflow = "synthflow.__main__:main"
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.9"
+pandas = ">=1.1,<1.1.5"
+scipy = "^1.7.0"
+jupyter = "^1.0.0"
+ipykernel = "^6.4.1"
+matplotlib = "^3.4.3"
+seaborn = "^0.11.2"
+numpy = "^1.21.3"
+wandb = "^0.12.5"
+docopt = "^0.6.2"
+pandera = "^0.7.2"
+torch = "^1.10.0"
+rich = "^10.12.0"
+scikit-learn = "<1.0.0"  # "^1.0.0"
+tqdm = "^4.62.3"
+schema = "^0.7.4"
+sdv = "<0.13"
+rdt = "<0.6.0"
+ray = {extras = ["default"], version = "^1.9.1"}
+papermill = {extras = ["black"], version = "^2.3.3"}
+# iterative-dp = {git = "https://github.com/shlomihod/iterative-dp.git", rev = "packaging"}
+# smartnoise-synth = {git = "https://github.com/shlomihod/smartnoise-sdk-synth.git", rev = "mwem-query-loop"}
+missingno = "^0.5.0"
+statsmodels = "^0.13.1"
+matplotlib-venn = "^0.11.6"
+igraph = "^0.9.10"
+diffprivlib = "^0.6.0"
+opendp = "^0.7"
+urllib3 = "<2"  # TEMP HACK: https://github.com/urllib3/urllib3/issues/2168
+ipython = "<8.13"  # Because of python>=3.8,<3.9
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.0.0"
+pytest-cov = "^3.0.0"
+black = {extras = ["jupyter"], version = "^22.3.0"}
+flake8 = "^4.0.1"
+mypy = "^0.950"
+isort = "^5.10.1"
+pandas-stubs = "^1.2.0"
+pre-commit = "^2.19.0"
+nbqa = "^1.3.1"
+pyupgrade = "^2.32.1"
+# Sphinx = "^4.2.0"
+# sphinx-autoapi = "^1.8.4"
+
+[tool.mypy]
+python_version = "3.8"
+ignore_errors = true  # TODO: remove in the future
+warn_unused_configs = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_return_any = false
+warn_unreachable = true
+show_error_codes = true
+pretty = true
+plugins = ["numpy.typing.mypy_plugin"]
+overrides = [
+    { ignore_missing_imports=true, module="diffprivlib.*" },
+    { ignore_missing_imports=true, module="scipy.*" },
+    { ignore_missing_imports=true, module="sklearn.*" },
+    { ignore_missing_imports=true, module="matplotlib.*" },
+    { ignore_missing_imports=true, module="seaborn.*" },
+    { ignore_missing_imports=true, module="matplotlib_venn.*" },
+    { ignore_missing_imports=true, module="IPython.api.*" },
+    { ignore_missing_imports=true, module="statsmodels.api.*" },
+    { ignore_missing_imports=true, module="missingno.*" }
+
+    ]
+
+[tool.black]
+line-length = 88
+target-version = ["py38"]
+
+[tool.isort]
+# make it compatible with black
+profile = "black"
+skip_gitignore = true
+known_third_party = "wandb"
+
+[tool.nbqa.addopts]
+flake8 = [
+    "--extend-ignore=E402,F821,E501"
+]
+
+[tool.pytest.ini_options]
+log_cli = 1
+
+[build-system]
+requires = ["poetry-core @ git+https://github.com/python-poetry/poetry-core.git@master"]
+build-backend = "poetry.core.masonry.api"

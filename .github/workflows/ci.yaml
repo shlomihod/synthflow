@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 0 * * WED'
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        default: false
+
+jobs:
+
+  pre-commit:
+    name: pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install poetry
+        run: pipx install poetry
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+          cache: 'poetry'
+      - name: Install Dependencies
+        run: poetry install -vv
+      - name: Pre-commit
+        run: poetry run pre-commit run --all-files
+
+  test:
+    needs: pre-commit
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.8']
+        os: ['ubuntu-latest']  # ['windows-latest']
+    env:
+      WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
+    steps:
+    - name: Set up MSYS2 for Windows
+      uses: msys2/setup-msys2@v2
+      if: startsWith(matrix.os, 'windows')
+      with:
+        msystem: MINGW64
+        update: true
+        install: git make mingw-w64-x86_64-toolchain mingw-w64-x86_64-boost mingw-w64-x86_64-curl
+    - uses: actions/checkout@v1
+    - name: Install boost for Ubuntu
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+       wget https://boostorg.jfrog.io/artifactory/main/release/1.82.0/source/boost_1_82_0.tar.bz2
+       tar --bzip2 -xf boost_1_82_0.tar.bz2
+       cd boost_1_82_0 && ./bootstrap.sh --prefix=/usr/ && sudo ./b2 install
+    - name: Prepare PriveBayes on Windows
+      run: cd privbayes && make
+      shell: msys2 {0}
+      if: startsWith(matrix.os, 'windows')
+    - name: Prepare PriveBayes on Linux or MacOS
+      run: cd privbayes && make
+      if: (!startsWith(matrix.os, 'windows'))
+    - name: Install poetry
+      run: curl -sSL https://install.python-poetry.org | python3 - # run: pipx install poetry
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'poetry'
+    - name: Install Dependencies
+      run: poetry install -vv
+    - name: Test & build coverage file
+      run: poetry run pytest -s --tb=long -v --cache-clear --cov=synthflow tests/ | tee pytest-coverage.txt
+    - name: Comment coverage
+      uses: coroo/pytest-coverage-commentator@v1.0.2
+    # Enable tmate debugging of manually-triggered workflows if the input option was provided
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+      if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+      with:
+        detached: true
